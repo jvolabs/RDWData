@@ -2,7 +2,8 @@ import type { VehicleProfile } from "@/lib/rdw/types";
 import {
   Tag, Car, Calendar, Fuel, ShieldCheck, AlertTriangle,
   CheckCircle, Gauge, Settings2, Weight, Users, Globe,
-  MapPin, Zap, Thermometer, BadgeCheck
+  MapPin, Zap, Thermometer, BadgeCheck, ShieldAlert,
+  Banknote, TrendingUp, Leaf, Clock
 } from "lucide-react";
 
 type Props = { profile: VehicleProfile };
@@ -32,11 +33,13 @@ function Field({
 
 function SectionHeader({ title, Icon, color = "brand" }: { title: string; Icon: React.ElementType; color?: string }) {
   const colorMap: Record<string, string> = {
-    brand: "bg-brand-50 text-brand-600 ring-brand-100",
+    brand: "bg-brand-50  text-brand-600  ring-brand-100",
     green: "bg-emerald-50 text-emerald-600 ring-emerald-100",
-    sky: "bg-sky-50 text-sky-600 ring-sky-100",
+    sky: "bg-sky-50    text-sky-600    ring-sky-100",
     violet: "bg-violet-50 text-violet-600 ring-violet-100",
-    amber: "bg-amber-50 text-amber-600 ring-amber-100",
+    amber: "bg-amber-50  text-amber-600  ring-amber-100",
+    rose: "bg-rose-50   text-rose-600   ring-rose-100",
+    teal: "bg-teal-50   text-teal-600   ring-teal-100",
   };
   return (
     <div className="mb-3 flex items-center gap-2.5">
@@ -45,6 +48,35 @@ function SectionHeader({ title, Icon, color = "brand" }: { title: string; Icon: 
       </span>
       <h3 className="text-sm font-bold text-slate-800">{title}</h3>
     </div>
+  );
+}
+
+function StatusBadge({ label, ok, warnOnTrue = false }: { label: string; ok: boolean; warnOnTrue?: boolean }) {
+  const isGood = warnOnTrue ? !ok : ok;
+  return (
+    <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none
+      ${isGood ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}
+    >
+      {isGood ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+      {label}
+    </span>
+  );
+}
+
+function NapBadge({ verdict }: { verdict: string | null }) {
+  if (!verdict) return null;
+  const v = verdict.toLowerCase();
+  const ok = v.includes("logisch");
+  const warn = v.includes("onlogisch");
+  return (
+    <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold
+      ${ok ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+        : warn ? "bg-red-50 text-red-700 ring-1 ring-red-200"
+          : "bg-slate-100 text-slate-600"}`}
+    >
+      {ok ? <TrendingUp className="h-3 w-3" /> : warn ? <AlertTriangle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+      NAP: {verdict}
+    </span>
   );
 }
 
@@ -73,7 +105,8 @@ export function VehicleCard({ profile }: Props) {
           </p>
         </div>
         <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold
-          ${apkOk ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" : "bg-red-50 text-red-700 ring-1 ring-red-200"}`}
+          ${apkOk ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+            : "bg-red-50 text-red-700 ring-1 ring-red-200"}`}
         >
           {apkOk
             ? <><ShieldCheck className="h-3 w-3" /> Road Legal</>
@@ -82,7 +115,57 @@ export function VehicleCard({ profile }: Props) {
       </div>
 
       <div className="space-y-5 p-4">
-        {/* Identity */}
+
+        {/* ── Status & History ──────────────────────────── */}
+        <div>
+          <SectionHeader title="Status & History" Icon={ShieldAlert} color="teal" />
+
+          {/* NAP mileage verdict — prominent row */}
+          {v.napVerdict && (
+            <div className={`mb-2 flex items-center gap-3 rounded-xl px-4 py-3 ring-1
+              ${v.napVerdict.toLowerCase().includes("logisch") && !v.napVerdict.toLowerCase().includes("on")
+                ? "bg-emerald-50 ring-emerald-100"
+                : v.napVerdict.toLowerCase().includes("onlogisch")
+                  ? "bg-red-50 ring-red-100"
+                  : "bg-slate-50 ring-slate-100"}`}
+            >
+              <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg
+                ${v.napVerdict.toLowerCase().includes("logisch") && !v.napVerdict.toLowerCase().includes("on")
+                  ? "bg-emerald-100" : "bg-slate-100"}`}
+              >
+                <TrendingUp className={`h-3.5 w-3.5
+                  ${v.napVerdict.toLowerCase().includes("logisch") && !v.napVerdict.toLowerCase().includes("on")
+                    ? "text-emerald-600" : "text-slate-500"}`}
+                />
+              </span>
+              <span className="flex-1 text-xs text-slate-500">NAP Mileage Verdict</span>
+              <span className={`text-sm font-bold
+                ${v.napVerdict.toLowerCase().includes("logisch") && !v.napVerdict.toLowerCase().includes("on")
+                  ? "text-emerald-700" : "text-red-700"}`}
+              >
+                {v.napVerdict}
+              </span>
+            </div>
+          )}
+
+          <div className="space-y-1.5">
+            <Field Icon={Clock} label="Last odometer year" value={fmt(v.napLastYear)} />
+            <Field Icon={Banknote} label="Original list price" value={v.cataloguePrice != null ? `€ ${v.cataloguePrice.toLocaleString("nl-NL")}` : null} />
+            <Field Icon={Leaf} label="Emission standard" value={v.emissionStandard} />
+          </div>
+
+          {/* Quick flag row */}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            <StatusBadge label="Insured" ok={v.insured} />
+            <StatusBadge label="No open recall" ok={!v.hasOpenRecall} />
+            <StatusBadge label="Not a taxi" ok={!v.isTaxi} />
+            <StatusBadge label="Transfer possible" ok={v.transferPossible} />
+            <StatusBadge label="No export flag" ok={!v.exportIndicator} />
+            <StatusBadge label="No WOK" ok={!v.wok} />
+          </div>
+        </div>
+
+        {/* ── Identity ─────────────────────────────────── */}
         <div>
           <SectionHeader title="Identity" Icon={Car} color="brand" />
           <div className="space-y-1.5">
@@ -92,10 +175,29 @@ export function VehicleCard({ profile }: Props) {
             <Field Icon={Gauge} label="Body type" value={v.bodyType} />
             <Field Icon={Users} label="Seats" value={fmt(v.seats)} />
             <Field Icon={Car} label="Doors" value={fmt(v.doors)} />
+            {v.color?.primary && (
+              <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white">
+                  <span
+                    className="h-3.5 w-3.5 rounded-full border border-slate-200"
+                    style={{
+                      background: v.color.primary.toLowerCase() === "blauw" ? "#3b82f6"
+                        : v.color.primary.toLowerCase() === "grijs" ? "#94a3b8"
+                          : v.color.primary.toLowerCase() === "zwart" ? "#1e293b"
+                            : v.color.primary.toLowerCase() === "wit" ? "#f1f5f9"
+                              : v.color.primary.toLowerCase() === "rood" ? "#ef4444"
+                                : "#94a3b8"
+                    }}
+                  />
+                </span>
+                <span className="flex-1 text-xs text-slate-500">Colour</span>
+                <span className="text-sm font-semibold text-slate-900 capitalize">{v.color.primary.toLowerCase()}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Powertrain */}
+        {/* ── Powertrain ───────────────────────────────── */}
         <div>
           <SectionHeader title="Powertrain" Icon={Fuel} color="sky" />
           <div className="space-y-1.5">
@@ -103,12 +205,23 @@ export function VehicleCard({ profile }: Props) {
             <Field Icon={Settings2} label="Displacement" value={fmt(v.engine?.displacement, "cc")} />
             <Field Icon={Settings2} label="Cylinders" value={fmt(v.engine?.cylinders)} />
             <Field Icon={Zap} label="Max power" value={fmt(v.engine?.powerKw, "kW")} />
-            <Field Icon={Thermometer} label="CO₂ emissions" value={fmt(v.co2, "g/km")} />
+            <Field Icon={Thermometer} label="CO₂" value={fmt(v.co2, "g/km")} />
             <Field Icon={Gauge} label="Consumption" value={v.consumptionCombined != null ? `${v.consumptionCombined} L/100km` : null} />
+            {v.energyLabel && (
+              <div className="flex items-center gap-3 rounded-xl bg-emerald-50 ring-1 ring-emerald-100 px-4 py-3">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-100">
+                  <Leaf className="h-3.5 w-3.5 text-emerald-600" />
+                </span>
+                <span className="flex-1 text-xs text-slate-500">Energy label</span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-600 text-sm font-black text-white">
+                  {v.energyLabel}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Weight */}
+        {/* ── Weight ───────────────────────────────────── */}
         <div>
           <SectionHeader title="Weight" Icon={Weight} color="violet" />
           <div className="space-y-1.5">
@@ -118,7 +231,7 @@ export function VehicleCard({ profile }: Props) {
           </div>
         </div>
 
-        {/* Registration */}
+        {/* ── Registration ─────────────────────────────── */}
         <div>
           <SectionHeader title="Registration" Icon={Globe} color="green" />
           <div className="space-y-1.5">
@@ -126,26 +239,10 @@ export function VehicleCard({ profile }: Props) {
             <Field Icon={Globe} label="First registered (world)" value={v.firstRegistrationWorld} />
             <Field Icon={Calendar} label="APK valid until" value={v.apkExpiryDate} accent />
             <Field Icon={BadgeCheck} label="Transfer possible" value={v.transferPossible ? "Yes" : "No"} />
+            <Field Icon={Users} label="Registered owners" value={fmt(v.owners?.count)} />
           </div>
         </div>
 
-        {/* Status flags */}
-        <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-3">
-          {[
-            { label: "Road-legal", ok: apkOk },
-            { label: "Transfer allowed", ok: v.transferPossible },
-            { label: "No export flag", ok: !v.exportIndicator },
-            { label: "No WOK flag", ok: !v.wok },
-            { label: "No recalls", ok: v.recallsCount === 0 },
-          ].map(({ label, ok }) => (
-            <span key={label} className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold
-              ${ok ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"}`}
-            >
-              {ok ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
-              {label}
-            </span>
-          ))}
-        </div>
       </div>
     </div>
   );

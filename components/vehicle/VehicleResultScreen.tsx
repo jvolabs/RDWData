@@ -5,7 +5,9 @@ import { Badge } from "@/components/ui/Badge";
 import { Panel } from "@/components/ui/Panel";
 import { PlateBadge } from "@/components/ui/PlateBadge";
 import { Spinner } from "@/components/ui/Spinner";
+import { MapPanel } from "@/components/vehicle/MapPanel";
 import { InspectionTable } from "@/components/vehicle/InspectionTable";
+
 import { RecallList } from "@/components/vehicle/RecallList";
 import { VehicleCard } from "@/components/vehicle/VehicleCard";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
@@ -226,6 +228,9 @@ export function VehicleResultScreen({ plate }: Props) {
             </h2>
             <RecallList items={data.recalls} />
           </Panel>
+
+          {/* Nearby Garages Map */}
+          <MapPanel />
         </div>
       </div>
     </main>

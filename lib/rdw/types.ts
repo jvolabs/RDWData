@@ -9,20 +9,20 @@ export type VehicleProfile = {
     brand: string | null;
     tradeName: string | null;
     year: number | null;
-    color: {
-      primary: string | null;
-      secondary: string | null;
-    };
+    color: { primary: string | null; secondary: string | null };
+
     // Body
     bodyType: string | null;
     doors: number | null;
     seats: number | null;
+    axles: number | null;
 
     // Fuel & Emissions
     fuelType: string | null;
     co2: number | null;
-    energyLabel: string | null;
+    energyLabel: string | null;           // A / B / C …
     consumptionCombined: number | null;
+    emissionStandard: string | null;           // e.g. "EURO 5 F"
 
     // Engine
     engine: {
@@ -43,22 +43,32 @@ export type VehicleProfile = {
 
     // Ownership
     owners: { count: number | null };
-    previousOwners: number | null;
 
-    // Import
+    // Import / export
     firstRegistrationNL: string | null;
     firstRegistrationWorld: string | null;
+    exportIndicator: boolean;
 
     // Flags
     wok: boolean;
-    exportIndicator: boolean;
     transferPossible: boolean;
+    insured: boolean;                   // wam_verzekerd
+    isTaxi: boolean;                   // taxi_indicator
+    hasOpenRecall: boolean;                   // openstaande_terugroepactie_indicator
+
+    // NAP mileage verdict (free RDW signal)
+    napVerdict: string | null;                  // "Logisch" | "Onlogisch" | "Geen oordeel"
+    napLastYear: number | null;                  // year of last odometer registration
+
+    // Financial
+    cataloguePrice: number | null;               // catalogusprijs in EUR
 
     recallsCount: number;
   };
   inspections: RdwRecord[];
   defects: RdwRecord[];
   recalls: RdwRecord[];
+  typeApprovals: RdwRecord[];
   raw: {
     main: RdwRecord[];
     fuel: RdwRecord[];
@@ -66,5 +76,6 @@ export type VehicleProfile = {
     defects: RdwRecord[];
     recalls: RdwRecord[];
     body: RdwRecord[];
+    typeApprovals: RdwRecord[];
   };
 };
