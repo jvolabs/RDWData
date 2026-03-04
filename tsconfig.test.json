@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["es2022"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "outDir": ".test-dist",
+    "rootDir": ".",
+    "noEmit": false
+  },
+  "include": [
+    "tests/**/*.ts",
+    "lib/api/api-error.ts",
+    "lib/api/plate.ts",
+    "lib/rdw/normalize.ts",
+    "lib/rdw/mapper.ts",
+    "lib/rdw/types.ts"
+  ],
+  "exclude": ["node_modules", ".next", ".test-dist"]
+}
