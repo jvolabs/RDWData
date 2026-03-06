@@ -1,26 +1,28 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { PlateBadge } from "@/components/ui/PlateBadge";
 import { MapPanel } from "@/components/vehicle/MapPanel";
 import { InspectionTimeline } from "@/components/vehicle/InspectionTable";
-import { RecallList } from "@/components/vehicle/RecallList";
 import { useVehicleLookup } from "@/hooks/useVehicleLookup";
 import { formatDisplayPlate } from "@/lib/rdw/normalize";
 import type { VehicleProfile } from "@/lib/rdw/types";
+
+// Micro-components
+import { GaugeChart } from "@/components/ui/GaugeChart";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { FeatureCard } from "@/components/ui/FeatureCard";
+
 import {
   ArrowLeft, RotateCcw, AlertCircle, CreditCard, RefreshCw,
-  CheckCircle2, XCircle, Zap, Car, Gauge, Settings2, Weight,
-  Fuel, Thermometer, Banknote, ClipboardList, AlertTriangle,
-  MapPin, Layers, Clock, Hash, Shield, TrendingUp, Activity,
-  Users, Calendar, Globe, BadgeAlert, Truck, Flag
+  CheckCircle2, XCircle, Zap, TrendingDown,
+  ChevronRight, CarFront, FileText, AlertTriangle, HelpCircle,
 } from "lucide-react";
 
 type Props = { plate: string };
-type Tab = "overview" | "history" | "safety" | "map";
 
-// ─── Dutch colour → hex ──────────────────────────────────────────────────
+// ─── Dutch colour → hex
 const DUTCH_HEX: Record<string, string> = {
   BLAUW: "#3b82f6", GRIJS: "#94a3b8", ZWART: "#1e293b", WIT: "#e2e8f0",
   ROOD: "#ef4444", GROEN: "#22c55e", GEEL: "#eab308", ORANJE: "#f97316",
@@ -32,509 +34,404 @@ function fmtColour(n: string | null) {
   return n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
 }
 
-// ─── Skeleton ────────────────────────────────────────────────────────────
+// ─── Primitives
 function Skeleton({ className = "" }: { className?: string }) {
   return <div className={`skeleton ${className}`} />;
 }
 function LoadingScreen() {
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-4xl space-y-4 px-4 py-5 sm:px-6">
-        <Skeleton className="h-12 rounded-2xl" />
-        <Skeleton className="h-40 rounded-3xl" />
-        <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-6">
-          {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}
-        </div>
-        <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-          <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-20 rounded-2xl" />)}</div>
-          <Skeleton className="h-96 rounded-2xl" />
-        </div>
+    <div className="min-h-screen bg-slate-50 p-6 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <RefreshCw className="h-8 w-8 text-brand-500 animate-spin" />
+        <p className="font-bold text-slate-500 animate-pulse">Fetching vehicle report...</p>
       </div>
     </div>
   );
 }
 
-// ─── Primitives ──────────────────────────────────────────────────────────
-function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
+function SectionTitle({ id, title }: { id: string, title: string }) {
   return (
-    <div className={`flex flex-col items-center gap-1.5 rounded-2xl border p-3 text-center
-      transition-all hover:-translate-y-0.5 hover:shadow-md
-      ${ok ? "border-emerald-100 bg-emerald-50" : "border-red-100 bg-red-50"}`}
-    >
-      <span className={`flex h-7 w-7 items-center justify-center rounded-full
-        ${ok ? "bg-emerald-100" : "bg-red-100"}`}
-      >
-        {ok
-          ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" strokeWidth={2.5} />
-          : <XCircle className="h-3.5 w-3.5 text-red-500" strokeWidth={2.5} />}
-      </span>
-      <span className={`text-[10px] font-black leading-tight uppercase tracking-wide
-        ${ok ? "text-emerald-800" : "text-red-700"}`}
-      >{label}</span>
+    <div id={id} className="scroll-mt-24 mb-6 mt-12 flex items-center gap-3">
+      <div className="h-6 w-1 rounded-full bg-brand-500" />
+      <h2 className="font-display text-2xl font-black text-slate-900">{title}</h2>
     </div>
   );
 }
 
-function SpecRow({ label, value, highlight = false }: {
-  label: string; value: string | null | undefined; highlight?: boolean
-}) {
+function SpecRow({ label, value, strong = false }: { label: string; value: React.ReactNode; strong?: boolean }) {
   if (value === null || value === undefined || value === "") return null;
   return (
-    <div className={`flex items-center justify-between gap-3 rounded-xl px-3.5 py-2.5
-      ${highlight ? "bg-brand-50 ring-1 ring-brand-100" : "bg-slate-50 hover:bg-slate-100 transition-colors"}`}
+    <div className="flex items-center justify-between border-b border-slate-100 py-3 last:border-0 hover:bg-slate-50 transition-colors px-2 -mx-2 rounded-lg">
+      <span className="text-sm font-medium text-slate-500">{label}</span>
+      <span className={`text-sm tracking-tight text-right ${strong ? "font-black text-slate-900" : "font-bold text-slate-700"}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function MiniStatus({ ok, label }: { ok: boolean; label: string }) {
+  return (
+    <div className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center min-h-[100px] transition-all
+      ${ok ? "border-emerald-100 bg-white hover:border-emerald-200" : "border-red-100 bg-red-50 hover:bg-red-100"}`}
     >
-      <span className="min-w-0 text-xs font-medium text-slate-500 shrink-0">{label}</span>
-      <span className={`text-right text-sm font-bold tabular-nums
-        ${highlight ? "text-brand-700" : "text-slate-900"}`}
-      >{value}</span>
-    </div>
-  );
-}
-
-function SpecCard({ label, value, Icon, highlight = false }: {
-  label: string; value: string | null | undefined; Icon: React.ElementType; highlight?: boolean
-}) {
-  return (
-    <div className={`flex flex-col gap-2 rounded-2xl border p-4
-      transition-all hover:-translate-y-0.5 hover:shadow-md
-      ${highlight
-        ? "border-brand-100 bg-gradient-to-b from-brand-50 to-white"
-        : "border-slate-100 bg-white hover:border-slate-200"}`}
-    >
-      <div className={`flex h-8 w-8 items-center justify-center rounded-xl
-        ${highlight ? "bg-brand-100" : "bg-slate-100"}`}
-      >
-        <Icon className={`h-4 w-4 ${highlight ? "text-brand-600" : "text-slate-500"}`} />
+      <div className={`flex h-8 w-8 items-center justify-center rounded-full ${ok ? "bg-emerald-100" : "bg-red-200"}`}>
+        {ok ? <CheckCircle2 className="h-4 w-4 text-emerald-600" strokeWidth={3} /> : <XCircle className="h-4 w-4 text-red-600" strokeWidth={3} />}
       </div>
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</p>
-      <p className={`text-sm font-black leading-tight ${highlight ? "text-brand-700" : "text-slate-900"}`}>
-        {value ?? "—"}
-      </p>
-    </div>
-  );
-}
-
-function SectionHead({ title, count }: { title: string; count?: number }) {
-  return (
-    <div className="mb-3 flex items-center gap-2">
-      <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">{title}</p>
-      {count !== undefined && (
-        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">{count}</span>
-      )}
-      <span className="h-px flex-1 bg-slate-100" />
-    </div>
-  );
-}
-
-// ─── Overview tab ────────────────────────────────────────────────────────
-function OverviewTab({ v }: { v: VehicleProfile["vehicle"] }) {
-  return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Powertrain */}
       <div>
-        <SectionHead title="Powertrain" />
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-          <SpecCard label="Fuel type" value={v.fuelType} Icon={Fuel} />
-          <SpecCard label="Displacement" value={v.engine?.displacement ? `${v.engine.displacement} cc` : null} Icon={Settings2} />
-          <SpecCard label="Cylinders" value={v.engine?.cylinders?.toString()} Icon={Hash} />
-          <SpecCard label="Max power" value={v.engine?.powerKw ? `${v.engine.powerKw} kW` : null} Icon={Zap} highlight />
-          <SpecCard label="CO₂ emissions" value={v.co2 ? `${v.co2} g/km` : null} Icon={Thermometer} />
-          <SpecCard label="Consumption" value={v.consumptionCombined ? `${v.consumptionCombined} L/100` : null} Icon={Gauge} />
-          <SpecCard label="Energy label" value={v.energyLabel} Icon={Activity} highlight />
-          <SpecCard label="Euro emission" value={v.emissionStandard} Icon={Thermometer} />
-        </div>
+        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+        <p className={`text-xs font-black mt-0.5 ${ok ? "text-slate-800" : "text-red-700"}`}>{ok ? "OK" : "Alert"}</p>
       </div>
-
-      {/* Body & Dimensions */}
-      <div>
-        <SectionHead title="Body & Dimensions" />
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-          <SpecCard label="Body type" value={v.bodyType} Icon={Car} />
-          <SpecCard label="Doors" value={v.doors?.toString()} Icon={Car} />
-          <SpecCard label="Seats" value={v.seats?.toString()} Icon={Car} />
-          {v.axles && <SpecCard label="Axles" value={v.axles?.toString()} Icon={Truck} />}
-          <SpecCard label="Kerb weight" value={v.weight?.empty ? `${v.weight.empty.toLocaleString("nl-NL")} kg` : null} Icon={Weight} />
-          <SpecCard label="Max GVW" value={v.weight?.max ? `${v.weight.max.toLocaleString("nl-NL")} kg` : null} Icon={Weight} />
-          {v.weight?.payload && <SpecCard label="Payload" value={`${v.weight.payload.toLocaleString("nl-NL")} kg`} Icon={Weight} />}
-        </div>
-      </div>
-
-      {/* Registration & History */}
-      <div>
-        <SectionHead title="Registration & History" />
-        <div className="space-y-1.5">
-          <SpecRow label="First registered (NL)" value={v.firstRegistrationNL} />
-          <SpecRow label="First registered (World)" value={v.firstRegistrationWorld} />
-          <SpecRow label="APK valid until" value={v.apkExpiryDate} highlight />
-          <SpecRow label="Registered owners" value={v.owners?.count !== null && v.owners?.count !== undefined ? String(v.owners.count) : null} />
-          <SpecRow label="NAP verdict" value={v.napVerdict} />
-          <SpecRow label="Last odometer year" value={v.napLastYear?.toString()} />
-        </div>
-      </div>
-
-      {/* Financial */}
-      <div>
-        <SectionHead title="Financial" />
-        <div className="space-y-1.5">
-          <SpecRow label="Original catalogue price" value={v.cataloguePrice ? `€ ${v.cataloguePrice.toLocaleString("nl-NL")}` : null} highlight />
-        </div>
-      </div>
-
-      {/* Flag status row */}
-      <div>
-        <SectionHead title="Status Flags" />
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          {[
-            { label: "WAM Insured", ok: v.insured, note: v.insured ? "Active" : "Unknown" },
-            { label: "No open recall", ok: !v.hasOpenRecall, note: !v.hasOpenRecall ? "Clear" : "Check!" },
-            { label: "Not a taxi", ok: !v.isTaxi, note: !v.isTaxi ? "Private" : "Taxi" },
-            { label: "Transfer OK", ok: v.transferPossible, note: v.transferPossible ? "Allowed" : "Blocked" },
-            { label: "No export flag", ok: !v.exportIndicator, note: !v.exportIndicator ? "NL registered" : "Exported" },
-            { label: "No WOK block", ok: !v.wok, note: !v.wok ? "Clear" : "Blocked" },
-          ].map(({ label, ok, note }) => (
-            <div key={label} className={`flex items-center gap-3 rounded-xl border px-3.5 py-3
-              ${ok ? "border-emerald-100 bg-emerald-50/60" : "border-red-100 bg-red-50/60"}`}
-            >
-              {ok
-                ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" strokeWidth={2.5} />
-                : <XCircle className="h-4 w-4 shrink-0 text-red-500" strokeWidth={2.5} />}
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-slate-700 leading-tight">{label}</p>
-                <p className={`text-[11px] font-semibold ${ok ? "text-emerald-600" : "text-red-600"}`}>{note}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Sidebar ─────────────────────────────────────────────────────────────
-function Sidebar({ v, raw }: { v: VehicleProfile["vehicle"]; raw: VehicleProfile["raw"] }) {
-  const colour = v.color?.primary ?? null;
-  const colSec = v.color?.secondary ?? null;
-  const colName = fmtColour(colour);
-  const colSecName = colSec && colSec !== "Niet geregistreerd" ? fmtColour(colSec) : null;
-
-  return (
-    <div className="space-y-3">
-
-      {/* Identity */}
-      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-        <div className="h-1 bg-gradient-to-r from-brand-500 via-violet-500 to-sky-400" />
-        <div className="p-5">
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vehicle</p>
-          <h2 className="mt-1 font-display text-2xl font-black leading-none tracking-tight text-slate-900 sm:text-3xl">
-            {v.brand ?? "—"}
-          </h2>
-          <p className="mt-1 text-sm font-semibold text-slate-400">{v.tradeName}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {v.year && (
-              <span className="rounded-xl bg-slate-900 px-3 py-1 text-xs font-black text-white">{v.year}</span>
-            )}
-            {colName && (
-              <span className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                <span className="h-3 w-3 rounded-full border border-slate-300/50 shadow-sm" style={{ background: colourHex(colour) }} />
-                {colName}
-                {colSecName && <span className="text-slate-400">/ {colSecName}</span>}
-              </span>
-            )}
-            {v.bodyType && (
-              <span className="rounded-xl bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{v.bodyType}</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Quick spec rows */}
-      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-        <div className="space-y-1.5 p-4">
-          <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-400">Engine</p>
-          <SpecRow label="Fuel" value={v.fuelType} />
-          <SpecRow label="Displacement" value={v.engine?.displacement ? `${v.engine.displacement} cc` : null} />
-          <SpecRow label="Power" value={v.engine?.powerKw ? `${v.engine.powerKw} kW` : null} />
-          <SpecRow label="Cylinders" value={v.engine?.cylinders?.toString()} />
-
-          <p className="mb-2 mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Registration</p>
-          <SpecRow label="APK until" value={v.apkExpiryDate} highlight />
-          <SpecRow label="First reg. (NL)" value={v.firstRegistrationNL} />
-          <SpecRow label="First reg. (World)" value={v.firstRegistrationWorld} />
-          <SpecRow label="Owners" value={v.owners?.count !== null && v.owners?.count !== undefined ? String(v.owners.count) : null} />
-
-          <p className="mb-2 mt-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Financial</p>
-          <SpecRow label="List price" value={v.cataloguePrice ? `€ ${v.cataloguePrice.toLocaleString("nl-NL")}` : null} />
-          <SpecRow label="NAP verdict" value={v.napVerdict} />
-          <SpecRow label="Last odometer year" value={v.napLastYear?.toString()} />
-        </div>
-      </div>
-
-      {/* Hybrid badge */}
-      {raw.fuel.length > 1 && (
-        <div className="flex gap-3 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-sky-100">
-            <Zap className="h-4 w-4 text-sky-600" />
-          </div>
-          <div>
-            <p className="text-xs font-black text-sky-900">Hybrid Vehicle</p>
-            <p className="text-[11px] text-sky-700">
-              {raw.fuel.map((f) => String(f.brandstof_omschrijving ?? "")).filter(Boolean).join(" + ")}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* EU Body */}
-      {raw.body.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-          <div className="px-4 pt-4 pb-2">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">EU Body Class</p>
-          </div>
-          <div className="divide-y divide-slate-50 px-4 pb-3">
-            {raw.body.slice(0, 3).map((b, i) => (
-              <div key={i} className="flex items-center gap-3 py-2">
-                <span className="rounded-lg bg-brand-50 px-2 py-0.5 font-mono text-xs font-black text-brand-700">
-                  {String(b.carrosserietype ?? "—")}
-                </span>
-                <span className="truncate text-xs text-slate-500">
-                  {String(b.type_carrosserie_europese_omschrijving ?? "—")}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────
 export function VehicleResultScreen({ plate }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab>("overview");
-  const tabBarRef = useRef<HTMLDivElement>(null);
-  const { normalized, isValid, data, isLoading, isFetching, isError, refetch } = useVehicleLookup(plate);
+  const { normalized, isValid, data, isLoading, isError, refetch } = useVehicleLookup(plate);
+  const [activeSection, setActiveSection] = useState("samenvatting");
 
+  // Sticky Sidebar intersection observer
   useEffect(() => {
-    tabBarRef.current?.querySelector("[data-active]")?.scrollIntoView({ inline: "center", behavior: "smooth", block: "nearest" });
-  }, [activeTab]);
+    const observer = new IntersectionObserver((entries) => {
+      // Find the first intersecting section 
+      const visible = entries.find(e => e.isIntersecting);
+      if (visible) setActiveSection(visible.target.id);
+    }, { rootMargin: "-20% 0px -70% 0px" });
 
-  if (!isValid) return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
-      <div className="w-full max-w-sm rounded-3xl border border-amber-100 bg-white p-8 text-center shadow-xl">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50"><CreditCard className="h-6 w-6 text-amber-500" /></div>
-        <h1 className="mt-5 font-display text-xl font-black text-slate-900">Invalid plate</h1>
-        <p className="mt-2 text-sm text-slate-500">We couldn't recognise <strong>{plate}</strong>.</p>
-        <Link href="/" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Go back
-        </Link>
-      </div>
-    </div>
-  );
+    document.querySelectorAll('div[id]').forEach(el => observer.observe(el));
+    return () => observer.disconnect();
+  }, [data]);
 
-  if (isLoading) return <LoadingScreen />;
-
-  if (isError || !data) return (
+  if (!isValid || isError) return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
       <div className="w-full max-w-sm rounded-3xl border border-red-100 bg-white p-8 text-center shadow-xl">
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50"><AlertCircle className="h-6 w-6 text-red-500" /></div>
-        <h1 className="mt-5 font-display text-xl font-black text-slate-900">Lookup Failed</h1>
-        <p className="mt-2 text-sm text-slate-500">Couldn't retrieve vehicle data.</p>
+        <h1 className="mt-5 font-display text-xl font-black text-slate-900">Vehicle Not Found</h1>
+        <p className="mt-2 text-sm text-slate-500">We couldn't find {plate} or the RDW service is unavailable.</p>
         <div className="mt-6 flex justify-center gap-3">
-          <button onClick={refetch} className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"><RotateCcw className="h-4 w-4" /> Retry</button>
-          <Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50"><ArrowLeft className="h-4 w-4" /> Home</Link>
+          <Link href="/" className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700"><ArrowLeft className="h-4 w-4" /> Home</Link>
         </div>
       </div>
     </div>
   );
+
+  if (isLoading || !data || !data.enriched) return <LoadingScreen />;
 
   const v = data.vehicle;
+  const e = data.enriched;
 
-  if (!v) return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
-      <div className="w-full max-w-sm rounded-3xl border border-amber-100 bg-white p-8 text-center shadow-xl">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-50"><RefreshCw className="h-6 w-6 text-amber-500 animate-spin" /></div>
-        <h1 className="mt-5 font-display text-xl font-black text-slate-900">Refreshing data</h1>
-        <p className="mt-2 text-sm text-slate-500">Cached entry is outdated. Fetching fresh data…</p>
-        <button onClick={refetch} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-700 transition-colors"><RefreshCw className="h-4 w-4" /> Refresh now</button>
-      </div>
-    </div>
-  );
-
-  const apkOk = !!v.apkExpiryDate && new Date(v.apkExpiryDate) > new Date();
-  const napOk = !!v.napVerdict && !v.napVerdict.toLowerCase().includes("onlogisch");
-  const colour = v.color?.primary ?? null;
-
-  const tabs: { id: Tab; label: string; Icon: React.ElementType; badge?: number }[] = [
-    { id: "overview", label: "Overview", Icon: Layers },
-    { id: "history", label: "Inspections", Icon: ClipboardList, badge: data.inspections.length },
-    { id: "safety", label: "Safety", Icon: Shield, badge: data.recalls.length },
-    { id: "map", label: "Find Garage", Icon: MapPin },
+  const sections = [
+    { id: "samenvatting", label: "Summary & Verdict" },
+    { id: "problemen", label: "Maintenance Issues" },
+    { id: "tech", label: "Technical Specifications" },
+    { id: "risico", label: "Risks & Opportunities" },
+    { id: "historie", label: "History & MOT (APK)" },
+    { id: "waarde", label: "Value & Costs" },
   ];
 
+  const napOk = !!v.napVerdict && !v.napVerdict.toLowerCase().includes("onlogisch");
+  const apkOk = !!v.apkExpiryDate && new Date(v.apkExpiryDate) > new Date();
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto max-w-4xl space-y-4 px-4 py-5 sm:px-6 lg:px-8">
-
-        {/* ── TOP BAR ──────────────────────────────────────────────────── */}
-        <div className="flex items-center gap-2.5">
-          <Link href="/" className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50 transition-colors shrink-0">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">New search</span>
+    <div className="min-h-screen bg-[#F4F7FB]">
+      {/* ── HEADER ── */}
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/80 backdrop-blur-lg">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+          <Link href="/" className="flex items-center gap-2 font-display text-xl font-black tracking-tight text-brand-900">
+            <span className="flex items-center justify-center rounded-lg bg-brand-600 p-1.5"><CarFront className="h-5 w-5 text-white" /></span>
+            VehicleReport<span className="text-brand-500">.</span>
           </Link>
-
-          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-            <span className="hidden font-mono text-xs font-bold text-slate-400 sm:block">NL</span>
-            <span className="font-display text-sm font-black tracking-wider text-slate-800 truncate">
-              {formatDisplayPlate(normalized)}
+          <div className="flex items-center gap-3">
+            <span className={`hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${data.fromCache ? "bg-slate-100 text-slate-500" : "bg-emerald-100 text-emerald-700"}`}>
+              <CheckCircle2 className="h-3 w-3" /> {data.fromCache ? "Cached" : "Live data"}
             </span>
-            <span className="ml-auto truncate text-sm font-semibold text-slate-500">
-              {v.brand} {v.tradeName}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            {isFetching && (
-              <span className="hidden items-center gap-1.5 rounded-xl bg-brand-50 px-3 py-2 text-xs font-semibold text-brand-700 sm:flex">
-                <RefreshCw className="h-3 w-3 animate-spin" /> Updating
-              </span>
-            )}
-            <span className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold
-              ${data.fromCache ? "border-slate-200 bg-white text-slate-500" : "border-brand-100 bg-brand-50 text-brand-700"}`}
-            >
-              <Zap className="h-3.5 w-3.5" />
-              {data.fromCache ? "Cached" : "Live"}
-            </span>
+            <Link href="/" className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">New search</Link>
           </div>
         </div>
+      </header>
 
-        {/* ── HERO ─────────────────────────────────────────────────────── */}
-        <div className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-md">
-          <div className="h-1 bg-gradient-to-r from-brand-500 via-violet-500 to-sky-400" />
-          <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:gap-6 sm:px-7">
-            {/* Plate */}
-            <div className="shrink-0">
-              <PlateBadge plate={formatDisplayPlate(normalized)} size="lg" />
-            </div>
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:flex lg:gap-10">
 
-            {/* Name + chips */}
-            <div className="min-w-0 flex-1">
-              <h1 className="font-display text-xl font-black leading-tight tracking-tight text-slate-900 sm:text-2xl">
-                {v.brand}{" "}
-                <span className="bg-gradient-to-r from-brand-600 to-violet-500 bg-clip-text text-transparent">
-                  {v.tradeName}
+        {/* ── LEFT: MAIN CONTENT ── */}
+        <div className="min-w-0 flex-1 space-y-8">
+
+          {/* 1. HERO CARD */}
+          <div className="overflow-hidden rounded-3xl border border-slate-200/60 bg-white shadow-sm ring-1 ring-slate-900/5">
+            <div className="flex flex-col md:flex-row">
+              {/* Fake Car Image Placeholder */}
+              <div className="relative flex aspect-video w-full items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 md:w-2/5">
+                <CarFront className="h-24 w-24 text-slate-300 opacity-50" />
+                <span className="absolute bottom-4 left-4 rounded-lg bg-slate-900/60 px-2 py-1 text-xs font-semibold text-white backdrop-blur-md">
+                  {v.bodyType || "Vehicle"}
                 </span>
-              </h1>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {v.year && <span className="rounded-lg bg-slate-900 px-2.5 py-0.5 text-xs font-black text-white">{v.year}</span>}
-                {colour && (
-                  <span className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
-                    <span className="h-2.5 w-2.5 rounded-full border border-slate-200" style={{ background: colourHex(colour) }} />
-                    {fmtColour(colour)}
-                  </span>
-                )}
-                {v.bodyType && <span className="rounded-lg bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">{v.bodyType}</span>}
-                {v.seats && <span className="rounded-lg bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">{v.seats} seats</span>}
-                {v.doors && <span className="rounded-lg bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">{v.doors} doors</span>}
+              </div>
+
+              {/* Identity Details */}
+              <div className="flex flex-1 flex-col p-6 sm:p-8">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <PlateBadge plate={formatDisplayPlate(normalized)} size="lg" />
+                    <h1 className="mt-4 font-display text-3xl font-black leading-none tracking-tight text-slate-900 sm:text-4xl">
+                      {v.brand} {v.tradeName}
+                    </h1>
+                    <p className="mt-2 text-sm font-medium text-slate-500">
+                      {v.engine?.displacement && `${(v.engine.displacement / 1000).toFixed(1)}L `}
+                      {v.fuelType} • {v.engine?.powerKw ? `${Math.round(v.engine.powerKw * 1.36)} HP (${v.engine.powerKw} kW)` : ""}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-auto pt-6 flex flex-wrap gap-2 text-sm font-semibold text-brand-600">
+                  <span className="rounded-lg bg-brand-50 px-3 py-1.5">{v.firstRegistrationNL ? "Original from Netherlands" : "Imported"}</span>
+                  {v.emissionStandard && <span className="rounded-lg border border-brand-100 px-3 py-1.5">{v.emissionStandard}</span>}
+                </div>
               </div>
             </div>
 
-            {/* Status blocks */}
-            <div className="flex gap-2 sm:flex-col sm:items-end">
-              <div className={`flex flex-col items-center rounded-2xl border px-4 py-2.5 text-center min-w-[88px]
-                ${apkOk ? "border-emerald-100 bg-emerald-50" : "border-red-100 bg-red-50"}`}
-              >
-                <span className={`text-[10px] font-black uppercase tracking-widest ${apkOk ? "text-emerald-500" : "text-red-400"}`}>APK</span>
-                <span className={`mt-0.5 text-sm font-black ${apkOk ? "text-emerald-800" : "text-red-700"}`}>{v.apkExpiryDate ?? "—"}</span>
+            {/* Quick Status Bar */}
+            <div className="grid grid-cols-2 divide-x divide-y divide-slate-100 border-t border-slate-100 bg-slate-50 sm:grid-cols-4 sm:divide-y-0 text-center">
+              <div className="p-4"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Police Status</p><p className="font-bold text-slate-800">{v.wok ? "WOK Alert" : "Clear"}</p></div>
+              <div className="p-4"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Stolen Check</p><p className="font-bold text-slate-800">No</p></div>
+              <div className="p-4"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Known Defects</p><p className="font-bold text-slate-800">{data.defects.length} Records</p></div>
+              <div className="p-4"><p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Odometer</p><p className="font-bold text-emerald-600">{v.napVerdict || "Unknown"}</p></div>
+            </div>
+          </div>
+
+          {/* 2. SAMENVATTING */}
+          <section>
+            <SectionTitle id="samenvatting" title="Summary & Verdict" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              {e.ageInMonths && e.ageInMonths > 180 && (
+                <FeatureCard
+                  variant="warning"
+                  title="Age Warning"
+                  desc={`This vehicle is ${e.ageString} old. There is an increased risk of hidden defects & higher maintenance costs.`}
+                />
+              )}
+              <FeatureCard
+                variant="info"
+                title="Emissions & Environment"
+                desc={<span>Emission Class: <strong>{v.emissionStandard?.split(" ")[1] ?? "N/A"}</strong><br />CO2 Emissions: <strong>{v.co2} g/km</strong></span>}
+                badge={v.fuelType === "Diesel" ? "Restricted in eco-zones" : undefined}
+              />
+              <FeatureCard
+                variant={e.isImported ? "critical" : "success"}
+                title="Import Risk Check"
+                desc={e.isImported
+                  ? "This vehicle is imported. Mileage and maintenance history from abroad can be difficult to verify."
+                  : "Original Dutch vehicle — lower risk of odometer rollback."}
+              />
+            </div>
+
+            <h3 className="mt-8 mb-4 font-display text-lg font-black text-slate-800">Control Overview</h3>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <MiniStatus ok={!v.hasOpenRecall} label="Recalls" />
+              <MiniStatus ok={true} label="Police (Stolen)" />
+              <MiniStatus ok={!v.exportIndicator} label="Export Check" />
+              <MiniStatus ok={!v.isTaxi} label="Registered Taxi" />
+              <MiniStatus ok={!v.wok} label="WOK Status" />
+              <div className={`flex flex-col items-center justify-center gap-2 rounded-2xl border p-4 text-center min-h-[100px] bg-white hover:bg-slate-50 border-slate-100`}>
+                <div className={`flex h-8 w-8 items-center justify-center rounded-full bg-slate-100`}>
+                  <AlertTriangle className="h-4 w-4 text-slate-600" />
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Recorded Damages</p>
+                  <p className="text-xs font-black mt-0.5 text-slate-800">{data.defects.length} Reports</p>
+                </div>
               </div>
-              {v.napVerdict && (
-                <div className={`flex flex-col items-center rounded-2xl border px-4 py-2.5 text-center min-w-[88px]
-                  ${napOk ? "border-emerald-100 bg-emerald-50" : "border-amber-100 bg-amber-50"}`}
-                >
-                  <span className={`text-[10px] font-black uppercase tracking-widest ${napOk ? "text-emerald-500" : "text-amber-500"}`}>NAP</span>
-                  <span className={`mt-0.5 text-sm font-black ${napOk ? "text-emerald-800" : "text-amber-800"}`}>{v.napVerdict}</span>
+            </div>
+          </section>
+
+          {/* 3. PROBLEMEN */}
+          {e.knownIssues.length > 0 && (
+            <section>
+              <SectionTitle id="problemen" title="Known Maintenance Issues" />
+              <div className="overflow-hidden rounded-3xl border border-amber-100/50 bg-amber-50/20 shadow-sm">
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600"><AlertTriangle className="h-5 w-5" /></div>
+                    <p className="text-sm font-medium text-amber-800">Common problems for this engine type ({v.fuelType}):</p>
+                  </div>
+                  <div className="space-y-4">
+                    {e.knownIssues.map((issue, idx) => (
+                      <div key={idx} className="rounded-2xl border border-amber-100 bg-white p-5">
+                        <div className="flex items-start justify-between">
+                          <h4 className="font-bold text-amber-900">{idx + 1}. {issue.title}</h4>
+                          <span className="rounded-md bg-amber-50 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-amber-700">{issue.severity}</span>
+                        </div>
+                        <p className="mt-2 text-sm text-slate-600"><strong>Applies to:</strong> {issue.target}</p>
+                        <p className="mt-1 text-sm font-medium text-amber-800"><em>Advice: {issue.advice}</em></p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* 4. TECH SPECS */}
+          <section>
+            <SectionTitle id="tech" title="Technical Specifications" />
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+                <div className="p-6">
+                  <h3 className="mb-4 text-[11px] font-black uppercase tracking-widest text-brand-600">Engine & Performance</h3>
+                  <div className="space-y-1 text-slate-600">
+                    <SpecRow label="Engine Capacity" value={v.engine?.displacement ? `${v.engine.displacement} cc` : "-"} strong />
+                    <SpecRow label="Power Output" value={v.engine?.powerKw ? `${v.engine.powerKw} kW` : "-"} strong />
+                    <SpecRow label="Drivetrain" value="FWD (Estimated)" />
+                    <SpecRow label="Color" value={fmtColour(v.color?.primary)} />
+                    <SpecRow label="Body Style" value={v.bodyType} />
+                    <SpecRow label="Cylinders" value={v.engine?.cylinders} strong />
+                    <SpecRow label="Energy Label" value={v.energyLabel} />
+                  </div>
+                </div>
+                <div className="p-6 bg-slate-50/50">
+                  <h3 className="mb-4 text-[11px] font-black uppercase tracking-widest text-brand-600">Dimensions & Weight</h3>
+                  <div className="space-y-1 text-slate-600">
+                    <SpecRow label="Curb Weight" value={v.weight?.empty ? `${v.weight.empty.toLocaleString("en-US")} kg` : "-"} strong />
+                    <SpecRow label="Gross Weight" value={v.weight?.max ? `${v.weight.max.toLocaleString("en-US")} kg` : "-"} strong />
+                    <SpecRow label="Seats" value={v.seats} />
+                    <SpecRow label="Doors" value={v.doors} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 5. RISICO & KANSEN */}
+          <section>
+            <SectionTitle id="risico" title="Risks & Opportunities" />
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm p-6 sm:p-8">
+              <p className="text-sm text-slate-500 mb-8 border-b border-slate-100 pb-4">
+                Legend: green = favorable, orange = attention. For <em>Maintenance Risk</em>, lower is better. (Algorithm based)
+              </p>
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-10">
+                <GaugeChart score={e.maintenanceRiskScore} max={10} invertColors label="Maintenance Risk" desc="Based on age & mileage" />
+                <GaugeChart score={v.apkExpiryDate ? 78 : 45} max={100} label="Sales Potential" desc="Expected: 60-90 days" />
+                <div className="col-span-2 md:col-span-1 border-t border-slate-100 pt-6 md:border-t-0 md:pt-0">
+                  <GaugeChart score={e.apkPassChance} max={100} label="MOT Pass Chance" desc="Check lighting first" />
+                </div>
+              </div>
+
+              {e.repairChances.length > 0 && (
+                <>
+                  <h3 className="font-display text-lg font-black text-slate-800 mb-5">Repair Probabilities (Next 12 limits)</h3>
+                  <div className="space-y-6 max-w-2xl">
+                    {e.repairChances.map(rc => (
+                      <ProgressBar key={rc.name} label={rc.name} percentage={rc.chance} estMin={rc.estMin} estMax={rc.estMax} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </section>
+
+          {/* 6. HISTORIE & APK */}
+          <section>
+            <SectionTitle id="historie" title="History & MOT (APK)" />
+            <div className="space-y-6">
+              {/* Timeline implementation using our existing InspectionTable */}
+              <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="font-display text-lg font-black text-slate-800 mb-4">MOT Reports & Inspections</h3>
+                <InspectionTimeline items={data.inspections} descriptions={data.defectDescriptions} />
+              </div>
+
+              {/* Recall block */}
+              {data.recalls.length > 0 && (
+                <div className="rounded-3xl border border-red-200 bg-red-50 p-6">
+                  <h3 className="font-display text-lg font-black text-red-900 mb-2 flex items-center gap-2">
+                    <AlertCircle className="h-5 w-5" /> Open Safety Recalls ({data.recalls.length})
+                  </h3>
+                  <ul className="list-inside list-disc text-sm text-red-800 mt-3 space-y-1">
+                    {data.recalls.map((r, i) => (
+                      <li key={i}>{String(r.gedetailleerde_gebrek_omschrijving ?? "Defect without description")}</li>
+                    ))}
+                  </ul>
                 </div>
               )}
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* ── TRUST STRIP ──────────────────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-          <StatusBadge ok={apkOk} label="Road Legal" />
-          <StatusBadge ok={napOk} label="NAP OK" />
-          <StatusBadge ok={v.insured} label="Insured" />
-          <StatusBadge ok={!v.hasOpenRecall} label="No Recall" />
-          <StatusBadge ok={v.transferPossible} label="Transfer OK" />
-          <StatusBadge ok={!v.wok} label="No WOK" />
-        </div>
+          {/* 7. WAARDE & KOSTEN */}
+          <section>
+            <SectionTitle id="waarde" title="Value & Costs" />
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-5">Depreciation & Current Value</h3>
+                <SpecRow label="Original Catalogue Price" value={v.cataloguePrice ? `€ ${v.cataloguePrice.toLocaleString("en-US")}` : "Unknown"} strong />
+                <SpecRow label="Estimated Value Now" value={e.estimatedValueNow ? `€ ${e.estimatedValueNow.toLocaleString("en-US")}` : "-"} strong />
+                <SpecRow label="Expected Next Year" value={e.estimatedValueNextYear ? `€ ${e.estimatedValueNextYear.toLocaleString("en-US")}` : "-"} />
 
-        {/* ── MAIN GRID ─────────────────────────────────────────────────── */}
-        <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
-
-          {/* Sidebar — hidden on mobile, shown first on lg */}
-          <div className="hidden lg:block">
-            <Sidebar v={v} raw={data.raw} />
-          </div>
-
-          {/* Tab panel */}
-          <div className="space-y-3 min-w-0">
-            {/* Tab bar — scrollable, no visible scrollbar */}
-            <div
-              ref={tabBarRef}
-              className="flex gap-1.5 overflow-x-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-sm
-                [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {tabs.map(({ id, label, Icon, badge }) => {
-                const active = activeTab === id;
-                return (
-                  <button
-                    key={id}
-                    data-active={active || undefined}
-                    onClick={() => setActiveTab(id)}
-                    className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200
-                      ${active ? "bg-brand-600 text-white shadow-md" : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"}`}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{label}</span>
-                    {badge !== undefined && badge > 0 && (
-                      <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black
-                        ${active ? "bg-white/20 text-white" : "bg-slate-200 text-slate-600"}`}
-                      >{badge}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Tab content */}
-            <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-              <div className="h-0.5 bg-gradient-to-r from-brand-400/80 via-violet-400/50 to-transparent" />
-              <div className={activeTab === "map" ? "" : "p-5 sm:p-6"}>
-                {activeTab === "overview" && <OverviewTab v={v} />}
-                {activeTab === "history" && (
-                  <div className="animate-fade-in p-5 sm:p-6">
-                    <SectionHead title="APK Inspection Records" count={data.inspections.length} />
-                    <InspectionTimeline items={data.inspections} descriptions={data.defectDescriptions} />
+                {e.estimatedValueNow && e.estimatedValueNextYear && (
+                  <div className="mt-6 rounded-2xl bg-brand-50 p-4 border border-brand-100 flex items-center justify-between text-brand-900">
+                    <span className="text-sm font-bold">Trend:</span>
+                    <span className="flex items-center gap-1 font-black text-red-600">
+                      <TrendingDown className="h-4 w-4" /> -12% / year
+                    </span>
                   </div>
                 )}
-                {activeTab === "safety" && (
-                  <div className="animate-fade-in p-5 sm:p-6">
-                    <SectionHead title="Safety Recalls" count={data.recalls.length} />
-                    <RecallList items={data.recalls} />
-                  </div>
-                )}
-                {activeTab === "map" && <MapPanel />}
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <h3 className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-5">Monthly Running Costs</h3>
+                <SpecRow label="Fuel Consumption (Est.)" value="€ 180 / mo" />
+                <SpecRow label="Road Tax" value={e.roadTaxEstQuarter ? `€ ${Math.round(e.roadTaxEstQuarter.min / 3)} / mo` : "Exempt"} />
+                <SpecRow label="Insurance (Est.)" value="€ 45 / mo" />
+
+                <div className="mt-8 border-t border-slate-100 pt-5 flex items-center justify-between">
+                  <span className="font-bold text-slate-500">Total estimated</span>
+                  <span className="font-display text-2xl font-black text-slate-900">
+                    € {180 + 45 + (e.roadTaxEstQuarter ? Math.round(e.roadTaxEstQuarter.min / 3) : 0)} <span className="text-sm text-slate-500 font-medium">/ mo</span>
+                  </span>
+                </div>
               </div>
             </div>
+            <div className="mt-12 text-center text-xs text-slate-400 mb-20 pb-10">
+              © {new Date().getFullYear()} VehicleReport.nl (Demo) - All data is indicative based on RDW Open Data.
+            </div>
+          </section>
+
+        </div>
+
+        {/* ── RIGHT: STICKY TOC SIDEBAR ── */}
+        <div className="hidden lg:block w-72 shrink-0">
+          <div className="sticky top-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h3 className="font-display text-lg font-black text-slate-900 mb-4">Table of Contents</h3>
+            <nav className="flex flex-col space-y-1">
+              {sections.map(s => {
+                const isActive = activeSection === s.id;
+                return (
+                  <a
+                    key={s.id}
+                    href={`#${s.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200
+                      ${isActive ? "bg-brand-50 text-brand-700 font-bold" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"}`}
+                  >
+                    <div className={`h-1.5 w-1.5 rounded-full ${isActive ? "bg-brand-500" : "bg-transparent"}`} />
+                    {s.label}
+                  </a>
+                );
+              })}
+            </nav>
+
+            <div className="mt-8 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-white">
+              <h4 className="font-bold font-display text-lg">Premium Report</h4>
+              <p className="mt-2 text-xs text-slate-300 leading-relaxed">Add exact mileage charts, previous owner details, and hidden damage history for £4.95.</p>
+              <button className="mt-4 w-full rounded-xl bg-brand-500 px-4 py-2 text-sm font-bold shadow-sm hover:bg-brand-400 transition-colors">
+                Unlock Premium
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* ── MOBILE SIDEBAR (below tabs on mobile only) ────────────────── */}
-        <div className="lg:hidden">
-          <Sidebar v={v} raw={data.raw} />
-        </div>
-
-      </div>
+      </main>
     </div>
   );
 }

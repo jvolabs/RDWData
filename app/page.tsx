@@ -56,11 +56,14 @@ function Stars({ rating }: { rating: number }) {
 
 // ─── Live counter ─────────────────────────────────────────────────────────
 function LiveCount() {
-  const [n, setN] = useState(() => 10000 + Math.floor(Math.random() * 500));
+  const [n, setN] = useState(10500); // Fixed initial for SSR hydration
+
   useEffect(() => {
+    setN(10000 + Math.floor(Math.random() * 500)); // randomize after mount
     const id = setInterval(() => setN(c => c + Math.floor(Math.random() * 2) + 1), 3000);
     return () => clearInterval(id);
   }, []);
+
   return <>{n.toLocaleString("nl-NL")}+</>;
 }
 
@@ -185,12 +188,12 @@ function Hero() {
 
           {/* Rear car — silver, slightly back */}
           <div className="absolute top-20 right-0 w-[300px] opacity-70 blur-[0.5px]">
-            <Image src="/car-silver.png" alt="Silver car" width={300} height={180} className="drop-shadow-lg" />
+            <Image src="/car-silver.png" alt="Silver car" width={300} height={180} className="w-full h-auto drop-shadow-lg" />
           </div>
 
           {/* Front car — main */}
           <div className="absolute bottom-0 left-1/2 z-10 w-[420px] -translate-x-[40%]">
-            <Image src="/hero-car.png" alt="Main car" width={420} height={260} priority className="drop-shadow-2xl" />
+            <Image src="/hero-car.png" alt="Main car" width={420} height={260} priority className="w-full h-auto drop-shadow-2xl" />
           </div>
 
           {/* Floating stat — top left */}
@@ -267,7 +270,7 @@ function CarCard({ car }: { car: typeof SAMPLE_CARS[0] }) {
         <Image
           src={car.image} alt={car.name}
           width={280} height={170}
-          className="object-contain transition-transform duration-300 group-hover:scale-105"
+          className="w-full h-auto object-contain transition-transform duration-300 group-hover:scale-105"
         />
       </div>
       {/* Info */}

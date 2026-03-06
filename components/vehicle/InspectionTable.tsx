@@ -41,7 +41,7 @@ export function InspectionTimeline({ items, descriptions }: Props) {
     return (
       <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-5">
         <ShieldCheck className="h-5 w-5 text-emerald-500" />
-        <p className="text-sm text-slate-500">No APK defect records on file.</p>
+        <p className="text-sm text-slate-500">No MOT defect records on file.</p>
       </div>
     );
   }

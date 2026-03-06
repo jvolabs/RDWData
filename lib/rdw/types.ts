@@ -1,9 +1,11 @@
 export type RdwRecord = Record<string, string | number | null>;
+import type { EnrichedData } from "./heuristics";
 
 export type VehicleProfile = {
   plate: string;
   displayPlate: string;
   fromCache: boolean;
+  enriched?: EnrichedData;
   vehicle: {
     // Identity
     brand: string | null;
