@@ -519,6 +519,64 @@
   color: var(--destructive);
 }
 
+@media (max-width: 900px) {
+  .controlsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .timelineShell {
+    grid-template-columns: 1fr;
+  }
+
+  .insightPanel {
+    position: static;
+    padding: 18px;
+  }
+
+  .heroGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .timelinePanel {
+    padding: 18px;
+  }
+
+  .timelineItem {
+    grid-template-columns: 1fr;
+  }
+
+  .timelineItem:not(:last-child)::before {
+    left: 20px;
+    top: 60px;
+    bottom: -12px;
+  }
+
+  .timelineMeta {
+    align-items: flex-start;
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .heroPanel {
+    padding: 22px 18px;
+  }
+
+  .timelineNode {
+    margin-top: 0;
+  }
+
+  .timelineMeta {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .timelineDate,
+  .timelineMileage {
+    white-space: normal;
+  }
+}
+
 .timelineCard {
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
   border: 1px solid var(--border);
