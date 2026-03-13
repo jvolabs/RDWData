@@ -198,6 +198,9 @@ export function InspectionTimelineScreen({ plate }: Props) {
     ? Math.round((events.filter((event) => event.result !== "fail").length / events.length) * 100)
     : 0;
 
+  const repairChances = data.enriched?.repairChances ?? [];
+  const knownIssues = data.enriched?.knownIssues ?? [];
+
   if (!isValid || isError) {
     return (
       <div className={styles.loadingScreen}>
@@ -436,6 +439,46 @@ export function InspectionTimelineScreen({ plate }: Props) {
                 })
               )}
             </div>
+          </div>
+        </div>
+
+        <div className={styles.repairDeck}>
+          <div className={styles.repairCard}>
+            <div className={styles.repairHeader}>Repair chances</div>
+            {repairChances.length ? (
+              <div className={styles.repairList}>
+                {repairChances.map((item) => (
+                  <div key={item.name} className={styles.repairRow}>
+                    <div>
+                      <div className={styles.repairTitle}>{item.name}</div>
+                      <div className={styles.repairMeta}>Chance: {item.chance}%</div>
+                    </div>
+                    <div className={styles.repairRange}>€{item.estMin.toLocaleString()}–€{item.estMax.toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.repairEmpty}>No repair chances reported.</div>
+            )}
+          </div>
+
+          <div className={styles.repairCard}>
+            <div className={styles.repairHeader}>Known issues</div>
+            {knownIssues.length ? (
+              <div className={styles.repairList}>
+                {knownIssues.map((issue) => (
+                  <div key={issue.title} className={styles.repairRow}>
+                    <div>
+                      <div className={styles.repairTitle}>{issue.title}</div>
+                      <div className={styles.repairMeta}>{issue.target} • {issue.severity}</div>
+                    </div>
+                    <div className={styles.issueAdvice}>{issue.advice}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.repairEmpty}>No known issues stored.</div>
+            )}
           </div>
         </div>
       </div>

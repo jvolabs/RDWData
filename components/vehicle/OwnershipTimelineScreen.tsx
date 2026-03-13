@@ -28,6 +28,13 @@ function formatYear(dateValue: string | null) {
   return parsed.getFullYear();
 }
 
+function formatLongDate(dateValue: string | null) {
+  if (!dateValue) return "Unknown";
+  const parsed = new Date(dateValue);
+  if (Number.isNaN(parsed.getTime())) return "Unknown";
+  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium" }).format(parsed);
+}
+
 function buildOwnershipTimeline(
   firstYear: number | null,
   ownersCount: number | null
@@ -107,10 +114,38 @@ export function OwnershipTimelineScreen({ plate }: Props) {
     );
   }
 
+  const registrationItems = [
+    { label: "APK expiry", value: formatLongDate(data.vehicle.apkExpiryDate) },
+    { label: "First registration (NL)", value: formatLongDate(data.vehicle.firstRegistrationNL) },
+    { label: "First registration (world)", value: formatLongDate(data.vehicle.firstRegistrationWorld) },
+    { label: "NAP verdict", value: data.vehicle.napVerdict ?? "Unknown" },
+    { label: "Transfer possible", value: data.vehicle.transferPossible ? "Yes" : "No" },
+    { label: "WOK flagged", value: data.vehicle.wok ? "Yes" : "No" },
+    { label: "Insured", value: data.vehicle.insured ? "Yes" : "No" },
+    { label: "Recalls", value: `${data.vehicle.recallsCount}` }
+  ];
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.contentContainer}>
         <VehicleNavBar plate={plate} subtitle="Ownership history" />
+
+        <div className={styles.registrationPanel}>
+          <div className={styles.registrationHeader}>
+            <div>
+              <div className={styles.registrationTitle}>Registration & flags</div>
+              <p className={styles.registrationSubtitle}>Transfer, recalls and inspection metadata.</p>
+            </div>
+          </div>
+          <div className={styles.registrationGrid}>
+            {registrationItems.map((item) => (
+              <div key={item.label} className={styles.registrationRow}>
+                <span className={styles.registrationLabel}>{item.label}</span>
+                <span className={styles.registrationValue}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
         <div className={`${styles.timelineContainer} ${styles.glassPanel}`}>
           <div className={styles.timelineHeader}>

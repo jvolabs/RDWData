@@ -395,6 +395,59 @@
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
+.estimatesSection {
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.estimatesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.estimatesTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.estimatesNote {
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.estimatesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.estimatesItem {
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--secondary);
+}
+
+.estimatesLabel {
+  font-size: 12px;
+  color: var(--muted-foreground);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.estimatesValue {
+  margin-top: 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
 .verdictHeader {
   display: flex;
   align-items: center;

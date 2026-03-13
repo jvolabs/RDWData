@@ -274,6 +274,59 @@
   font-weight: 600;
 }
 
+.registrationPanel {
+  margin: 16px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.registrationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.registrationTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.registrationSubtitle {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+}
+
+.registrationGrid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.registrationRow {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.registrationLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted-foreground);
+}
+
+.registrationValue {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 @media (max-width: 720px) {
   .topbar {
     flex-direction: column;

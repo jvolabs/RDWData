@@ -117,6 +117,30 @@ export function MarketAnalysisScreen({ plate }: Props) {
   }
 
   const v = data.vehicle;
+  const enriched = data.enriched;
+  const estimateRows = [
+    { label: "Estimated value", value: formatCurrency(enriched.estimatedValueNow) },
+    {
+      label: "Value range",
+      value:
+        enriched.estimatedValueMin && enriched.estimatedValueMax
+          ? `${formatCurrency(enriched.estimatedValueMin)} — ${formatCurrency(enriched.estimatedValueMax)}`
+          : "—"
+    },
+    { label: "Market confidence", value: enriched.marketValueConfidence ?? "UNKNOWN" },
+    { label: "Market signal", value: enriched.mileageVerdict ?? "UNKNOWN" },
+    { label: "APK pass chance", value: `${enriched.apkPassChance}%` },
+    {
+      label: "Road tax (per quarter)",
+      value:
+        enriched.roadTaxEstQuarter
+          ? `${formatCurrency(enriched.roadTaxEstQuarter.min)} — ${formatCurrency(enriched.roadTaxEstQuarter.max)}`
+          : "—"
+    },
+    { label: "Fuel est. / month", value: formatCurrency(enriched.fuelEstMonth) },
+    { label: "Insurance est. / month", value: formatCurrency(enriched.insuranceEstMonth) },
+    { label: "Maintenance risk", value: `${enriched.maintenanceRiskScore.toFixed(1)} / 10` }
+  ];
   const displayPlate = formatDisplayPlate(normalized);
   const title = [v.brand, v.tradeName, v.year].filter(Boolean).join(" ");
 
@@ -217,6 +241,23 @@ export function MarketAnalysisScreen({ plate }: Props) {
               </div>
               <div className={styles.verdictText}>{verdictText}</div>
             </div>
+          </div>
+        </div>
+
+        <div className={styles.estimatesSection}>
+          <div className={styles.estimatesHeader}>
+            <div>
+              <h3 className={styles.estimatesTitle}>Estimates & finances</h3>
+              <p className={styles.estimatesNote}>Market value, tax and the service signal.</p>
+            </div>
+          </div>
+          <div className={styles.estimatesGrid}>
+            {estimateRows.map((row) => (
+              <div key={row.label} className={styles.estimatesItem}>
+                <div className={styles.estimatesLabel}>{row.label}</div>
+                <div className={styles.estimatesValue}>{row.value}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
