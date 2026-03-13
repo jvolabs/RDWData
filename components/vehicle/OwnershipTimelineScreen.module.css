@@ -1,0 +1,290 @@
+.pageContainer {
+  --background: #f7fafc;
+  --foreground: #0f172a;
+  --border: #00000014;
+  --primary: #0b67ff;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #eef2f7;
+  --muted-foreground: #64748b;
+  --success: #16a34a;
+  --accent: #e6f0ff;
+  --accent-foreground: #0b67ff;
+  --destructive: #dc2626;
+  --warning: #f59e0b;
+  --warning-foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 56px;
+  background: var(--background);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: var(--foreground);
+}
+
+.contentContainer {
+  width: 100%;
+  max-width: 1180px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.glassPanel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+  padding: 24px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.brandBlock {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brandMark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--warning);
+  color: var(--warning-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brandCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  align-items: flex-end;
+}
+
+.brandTitle {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.brandSubtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  line-height: 1.2;
+}
+
+.timelineContainer {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.timelineHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.timelineTitle {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.timelineSubtitle {
+  font-size: 15px;
+  color: var(--muted-foreground);
+  line-height: 1.5;
+}
+
+.timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-left: 24px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 16px;
+  bottom: 16px;
+  width: 2px;
+  background: var(--border);
+}
+
+.timelineItem {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.timelineNode {
+  position: absolute;
+  left: -31px;
+  top: 24px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--background);
+  border: 3px solid var(--primary);
+  z-index: 2;
+}
+
+.nodeWarning {
+  border-color: var(--warning);
+}
+
+.ownerCard {
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  background: var(--background);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardWarning {
+  border-color: var(--warning);
+  background: linear-gradient(180deg, var(--background) 0%, rgba(245, 158, 11, 0.05) 100%);
+}
+
+.ownerTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ownerIdentity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ownerAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ownerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ownerName {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.ownerType {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.ownerDates {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.dateRange {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.durationBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.warningAlert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--warning);
+  color: var(--warning-foreground);
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.emptyNote {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .brandCopy {
+    align-items: flex-start;
+  }
+
+  .ownerDates {
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,340 @@
+.page {
+  --background: #f7f9fb;
+  --foreground: #0b1220;
+  --border: #00000014;
+  --primary: #0f62fe;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f6ff;
+  --secondary-foreground: #123e76;
+  --muted: #eceff4;
+  --muted-foreground: #62707f;
+  --success: #16a34a;
+  --accent: #e6f0ff;
+  --accent-foreground: #0f62fe;
+  --destructive: #dc2626;
+  --warning: #f59e0b;
+  --warning-foreground: #1f2937;
+  --card: #ffffff;
+  --card-foreground: #0b1220;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  background: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+.pageContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 56px;
+  background:
+    radial-gradient(circle at top left, var(--accent) 0%, transparent 28%),
+    linear-gradient(180deg, var(--background) 0%, #f1f5fb 100%);
+}
+
+.contentContainer {
+  width: 100%;
+  max-width: 1180px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.surfacePanel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.06);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+}
+
+.brandBlock {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brandMark {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--primary) 0%, #1d4ed8 100%);
+  color: var(--primary-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.2);
+}
+
+.brandCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.brandTitle {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.brandSubtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.topbarActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pillButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+}
+
+.pillPrimary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.pageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0 8px 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  align-self: flex-start;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.headerTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.headerTitle {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.headerSubtitle {
+  font-size: 15px;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+  max-width: 600px;
+}
+
+.specsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.accordionCard {
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+}
+
+.accordionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.accordionHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.accordionIconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accordionTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.accordionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.accordionSubtitle {
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.accordionToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.accordionContent {
+  padding: 32px 24px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(248, 250, 252, 0.5) 100%);
+}
+
+.specsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px;
+}
+
+.specItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.specIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.specDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 2px;
+}
+
+.specLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.specValue {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+}
+
+.specMeta {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin-top: 2px;
+}
+
+.emptyNotice {
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.loadingScreen {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingCard {
+  padding: 18px 22px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.collapsed .accordionContent {
+  display: none;
+}
+
+.collapsed .accordionHeader {
+  border-bottom: none;
+}
+
+@media (max-width: 900px) {
+  .specsGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
