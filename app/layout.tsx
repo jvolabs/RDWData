@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Inter, Outfit } from "next/font/google";
 import { StoreProvider } from "@/lib/store/provider";
+import { SiteHeader } from "@/components/layout/SiteHeader";
 import "./globals.css";
 
 const bodyFont = Inter({
@@ -31,8 +31,8 @@ export default function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={`${bodyFont.variable} ${headingFont.variable} bg-slate-50 font-sans text-slate-900 antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning className={`${bodyFont.variable} ${headingFont.variable} bg-slate-50 font-sans text-slate-900 antialiased`}>
         <StoreProvider>
           <SiteHeader />
           <div className="min-h-screen">{children}</div>

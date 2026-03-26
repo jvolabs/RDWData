@@ -1,4 +1,6 @@
+import Image from "next/image";
 import type { VehicleProfile } from "@/lib/rdw/types";
+import { getVehicleImageUrl } from "@/lib/utils/imagin";
 import {
   Tag, Car, Calendar, Fuel, ShieldCheck, AlertTriangle,
   CheckCircle, Gauge, Settings2, Weight, Users, Globe,
@@ -63,22 +65,7 @@ function StatusBadge({ label, ok, warnOnTrue = false }: { label: string; ok: boo
   );
 }
 
-function NapBadge({ verdict }: { verdict: string | null }) {
-  if (!verdict) return null;
-  const v = verdict.toLowerCase();
-  const ok = v.includes("logisch");
-  const warn = v.includes("onlogisch");
-  return (
-    <span className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold
-      ${ok ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-        : warn ? "bg-red-50 text-red-700 ring-1 ring-red-200"
-          : "bg-slate-100 text-slate-600"}`}
-    >
-      {ok ? <TrendingUp className="h-3 w-3" /> : warn ? <AlertTriangle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-      NAP: {verdict}
-    </span>
-  );
-}
+
 
 function fmt(v: number | null | undefined, unit = ""): string | null {
   if (v == null) return null;
@@ -93,6 +80,18 @@ export function VehicleCard({ profile }: Props) {
     <div className="card-glow overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-card">
       {/* Gradient top bar */}
       <div className="h-1 w-full bg-gradient-to-r from-brand-400 via-brand-600 to-violet-500" />
+
+      {/* Vehicle Thumbnail */}
+      <div className="relative aspect-[16/9] overflow-hidden bg-slate-100">
+        <Image
+          alt={`${v.brand} ${v.tradeName}`}
+          src={getVehicleImageUrl(v.brand, v.tradeName, { angle: "01", zoomtype: "relative" })}
+          width={400}
+          height={225}
+          className="h-full w-full object-contain"
+          unoptimized
+        />
+      </div>
 
       {/* Header */}
       <div className="flex items-start justify-between border-b border-slate-100 px-5 py-4">

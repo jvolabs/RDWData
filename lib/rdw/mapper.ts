@@ -1,5 +1,6 @@
 import { formatDisplayPlate } from "./normalize";
 import type { RdwRecord, VehicleProfile } from "./types";
+import { enrichVehicleData } from "./heuristics";
 
 function str(v: unknown): string | null {
   if (v == null || v === "") return null;
@@ -30,6 +31,7 @@ function dateStr(v: unknown): string | null {
 export function toVehicleProfile(input: {
   plate: string;
   fromCache: boolean;
+  defectDescriptions?: Record<string, string>;
   main: RdwRecord[];
   fuel: RdwRecord[];
   apk: RdwRecord[];
@@ -50,7 +52,7 @@ export function toVehicleProfile(input: {
   const yearRaw = str(m.datum_eerste_toelating ?? m.datum_eerste_toelating_dt);
   const year = yearRaw ? Number(String(yearRaw).replace(/\D/g, "").slice(0, 4)) : null;
 
-  return {
+  const profile: VehicleProfile = {
     plate: input.plate,
     displayPlate: formatDisplayPlate(input.plate),
     fromCache: input.fromCache,
@@ -122,6 +124,7 @@ export function toVehicleProfile(input: {
 
     inspections: input.apk,
     defects: input.defects,
+    defectDescriptions: input.defectDescriptions ?? {},
     recalls: input.recalls,
     typeApprovals: input.typeApprovals,
 
@@ -135,4 +138,7 @@ export function toVehicleProfile(input: {
       typeApprovals: input.typeApprovals
     }
   };
+
+  profile.enriched = enrichVehicleData(profile);
+  return profile;
 }

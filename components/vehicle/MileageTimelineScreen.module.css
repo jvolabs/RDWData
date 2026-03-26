@@ -1,0 +1,472 @@
+.pageContainer {
+  --background: #f6f8fb;
+  --foreground: #0f172a;
+  --border: #00000014;
+  --primary: #0b63d6;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #e9eef6;
+  --muted-foreground: #64748b;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --accent: #dbeafe;
+  --accent-foreground: #1e3aa8;
+  --warning: #f59e0b;
+  --warning-foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 24px 56px;
+  background: var(--background);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  color: var(--foreground);
+}
+
+.contentContainer {
+  width: 100%;
+  max-width: 1180px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.glassPanel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+}
+
+.brandBlock {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.brandMark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brandCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.brandTitle {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.brandSubtitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  line-height: 1.2;
+}
+
+.topbarRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.heroPanel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px;
+  background: linear-gradient(180deg, var(--card) 0%, var(--secondary) 100%);
+}
+
+.heroCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 740px;
+  min-width: 0;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.heroTitle {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted-foreground);
+  max-width: 680px;
+}
+
+.heroMetrics {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.metricChip {
+  min-width: 132px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metricLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.metricValue {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--foreground);
+  white-space: nowrap;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+}
+
+.chartPanel {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.chartTitleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chartTitle {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.chartSubtitle {
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+.chartLegend {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  font-weight: 500;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legendApk {
+  background: var(--primary);
+}
+
+.legendWorkshop {
+  background: var(--warning);
+}
+
+.legendOwner {
+  background: var(--accent-foreground);
+}
+
+.chartContainer {
+  position: relative;
+  height: 320px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.chartSvg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.chartAxisLine {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.chartGridLine {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.chartDataLine {
+  fill: none;
+  stroke: var(--success);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chartArea {
+  fill: var(--success);
+  opacity: 0.1;
+}
+
+.chartPoint {
+  fill: var(--card);
+  stroke: var(--success);
+  stroke-width: 2;
+}
+
+.chartPointInner {
+  fill: var(--success);
+}
+
+.pointApk {
+  fill: var(--primary);
+}
+
+.pointWorkshop {
+  fill: var(--warning);
+}
+
+.pointOwner {
+  fill: var(--accent-foreground);
+}
+
+.chartLabelX {
+  font-size: 12px;
+  fill: var(--muted-foreground);
+  text-anchor: middle;
+}
+
+.chartLabelY {
+  font-size: 12px;
+  fill: var(--muted-foreground);
+  text-anchor: end;
+  alignment-baseline: middle;
+}
+
+.timelinePanel {
+  padding: 28px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.timelineHeader {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.timelineList {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.timelineLine {
+  position: absolute;
+  left: 15px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--border);
+}
+
+.timelineItem {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  position: relative;
+}
+
+.timelineItem:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+.timelineMarker {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.markerApk {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.markerWorkshop {
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.markerOwner {
+  border-color: var(--accent-foreground);
+  color: var(--accent-foreground);
+}
+
+.timelineContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.timelineTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.timelineTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.timelineMileage {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.timelineDate {
+  font-size: 13px;
+  color: var(--muted-foreground);
+}
+
+.timelineDesc {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.loadingScreen {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingCard {
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 1100px) {
+  .dashboardGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
